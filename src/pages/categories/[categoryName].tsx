@@ -35,7 +35,7 @@ export const getStaticPaths = async () => {
   );
   const categories: ICategory[] = await res.json();
 
-  const paths = categories.map((category) => ({
+  const paths = categories?.map((category) => ({
     params: { categoryName: category.categoryName }
   }));
 
