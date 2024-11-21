@@ -9,7 +9,7 @@ import { ReactElement } from "react";
 const ProductDetailsPage = ({ product }: { product: IProduct }) => {
   const router = useRouter();
 
-  if (router.isFallback) {
+  if (router.isFallback || !product) {
     return <div>Loading...</div>;
   }
   return (
@@ -52,12 +52,14 @@ const ProductDetailsPage = ({ product }: { product: IProduct }) => {
           </div>
 
           <div className="space-y-2">
-            {Object.entries(product.keyFeatures).map(([key, value]) => (
-              <div key={key} className="flex justify-between">
-                <span className="font-medium text-gray-700">{key}:</span>
-                <span className="text-gray-700">{value}</span>
-              </div>
-            ))}
+            {product.keyFeatures &&
+              Array.isArray(Object.entries(product.keyFeatures)) &&
+              Object.entries(product.keyFeatures)?.map(([key, value]) => (
+                <div key={key} className="flex justify-between">
+                  <span className="font-medium text-gray-700">{key}:</span>
+                  <span className="text-gray-700">{value}</span>
+                </div>
+              ))}
           </div>
 
           <div className="mb-6">
@@ -65,7 +67,8 @@ const ProductDetailsPage = ({ product }: { product: IProduct }) => {
             {product.reviews.length === 0 ? (
               <p>No reviews yet.</p>
             ) : (
-              product.reviews.map((review, index) => (
+              Array.isArray(product?.reviews) &&
+              product?.reviews?.map((review, index) => (
                 <div key={index} className="border-t pt-4">
                   <p className="font-semibold">{review.user}</p>
                   <div className="flex items-center text-yellow-400">
@@ -110,7 +113,10 @@ export const getStaticProps: GetStaticProps<{
     `https://pc-builder-server-fawn.vercel.app/products/${id}`
   );
   const product = await productRes.json();
-  return { props: { categories, product } };
+  if (!product) {
+    return { notFound: true }; // If product is not found, show 404
+  }
+  return { props: { categories: categories || [], product: product || {} } };
 };
 
 export const getStaticPaths: GetStaticPaths = async () => {
@@ -118,7 +124,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
     await fetch("https://pc-builder-server-fawn.vercel.app/products")
   ).json();
 
-  const paths = products.map((product: { _id: string }) => ({
+  const paths = products?.map((product: { _id: string }) => ({
     params: { productDetailsById: product._id }
   }));
 

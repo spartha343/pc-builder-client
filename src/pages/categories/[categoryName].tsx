@@ -3,9 +3,51 @@ import { ICategory } from "@/interfaces/category.interface";
 import { IProduct } from "@/interfaces/product.interface";
 import MainLayout from "@/layouts/MainLayout";
 import { GetStaticProps } from "next";
+import { useRouter } from "next/router";
 import { ReactElement } from "react";
 
-const CategoryPage = ({ products }: { products: IProduct[] }) => {
+export const getStaticPaths = async () => {
+  const res = await fetch(
+    "https://pc-builder-server-fawn.vercel.app/categories"
+  );
+  const categories: ICategory[] = await res.json();
+
+  const paths = categories?.map((category) => ({
+    params: { categoryName: category?.categoryName }
+  }));
+
+  return {
+    paths,
+    fallback: true
+  };
+};
+
+export const getStaticProps: GetStaticProps<{
+  categories: ICategory[];
+  products: IProduct[];
+}> = async ({ params }) => {
+  const categoryName = params?.categoryName;
+  const res = await fetch(
+    "https://pc-builder-server-fawn.vercel.app/categories"
+  );
+  const categories = await res.json();
+  const productsRes = await fetch(
+    `https://pc-builder-server-fawn.vercel.app/products-by-category-name/${categoryName}`
+  );
+  const products = await productsRes.json();
+  return { props: { categories: categories || [], products: products || [] } };
+};
+
+const CategoryPage = ({ products = [] }: { products: IProduct[] }) => {
+  const router = useRouter();
+
+  if (router.isFallback || !Array.isArray(products)) {
+    return <div>Loading...</div>;
+  }
+
+  if (!products || products.length === 0) {
+    return <div>No products found in this category.</div>;
+  }
   return (
     <section className="py-8">
       <h2 className="text-2xl font-bold text-center mb-4">
@@ -28,36 +70,4 @@ CategoryPage.getLayout = function getLayout(
   { categories }: { categories: ICategory[] }
 ) {
   return <MainLayout categories={categories}>{page}</MainLayout>;
-};
-
-export const getStaticPaths = async () => {
-  const res = await fetch(
-    "https://pc-builder-server-fawn.vercel.app/categories"
-  );
-  const categories: ICategory[] = await res.json();
-
-  const paths = categories?.map((category) => ({
-    params: { categoryName: category.categoryName }
-  }));
-
-  return {
-    paths,
-    fallback: true
-  };
-};
-
-export const getStaticProps: GetStaticProps<{
-  categories: ICategory[];
-  products: IProduct[];
-}> = async ({ params }) => {
-  const categoryName = params?.categoryName;
-  const res = await fetch(
-    "https://pc-builder-server-fawn.vercel.app/categories"
-  );
-  const categories = await res.json();
-  const productsRes = await fetch(
-    `https://pc-builder-server-fawn.vercel.app/products-by-category-name/${categoryName}`
-  );
-  const products = await productsRes.json();
-  return { props: { categories, products } };
 };

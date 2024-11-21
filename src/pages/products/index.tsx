@@ -5,7 +5,7 @@ import MainLayout from "@/layouts/MainLayout";
 import { GetStaticProps } from "next";
 import { ReactElement } from "react";
 
-const AllProductsPage = ({ products }: { products: IProduct[] }) => {
+const AllProductsPage = ({ products = [] }: { products: IProduct[] }) => {
   return (
     <section className="py-8">
       <h2 className="text-2xl font-bold text-center mb-4">

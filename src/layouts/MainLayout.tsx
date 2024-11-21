@@ -8,7 +8,7 @@ interface MainLayoutProps {
   categories: ICategory[];
 }
 
-const MainLayout = ({ children, categories }: MainLayoutProps) => {
+const MainLayout = ({ children, categories = [] }: MainLayoutProps) => {
   return (
     <>
       <Navbar categories={categories} />

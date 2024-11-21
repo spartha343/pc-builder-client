@@ -34,5 +34,5 @@ export const getStaticProps: GetStaticProps<{
   );
   const categories = await res.json();
 
-  return { props: { categories } };
+  return { props: { categories: categories || [] } };
 };
